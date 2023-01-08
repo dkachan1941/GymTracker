@@ -30,28 +30,41 @@ class ExercisesViewModel @Inject constructor(
         when (event) {
             ExercisesScreenEvent.LoadData -> loadData()
             is ExercisesScreenEvent.OnExerciseCompleted -> updateExercise(exercise = event.exercise)
+            is ExercisesScreenEvent.ChangeExerciseName -> changeExerciseName(
+                exercise = event.exercise,
+                exerciseName = event.exerciseName
+            )
+            is ExercisesScreenEvent.OnExerciseClicked -> displayExerciseDetails(
+                exercise = event.exercise
+            )
         }
     }
 
-    private fun updateExercise(exercise: Exercise) {
-        val newExercise = exercise.copy(
-            lastDoneTimestamp = System.currentTimeMillis(),
-        )
+    private fun changeExerciseName(exercise: Exercise, exerciseName: String) {
         viewModelScope.launch {
             repository.insertExercise(
-                newExercise
+                exercise.copy(
+                    name = exerciseName
+                )
             )
         }
-        if (_state.value is ExercisesScreenState.ShowingExercises) {
-            _state.value = (state.value as ExercisesScreenState.ShowingExercises).copy(
-                exercises = (state.value as ExercisesScreenState.ShowingExercises)
-                    .exercises.map { oldExercise ->
-                        if (oldExercise.id == exercise.id) {
-                            newExercise
-                        } else {
-                            oldExercise
-                        }
-                    }
+    }
+
+    private fun displayExerciseDetails(exercise: Exercise) {
+        _state.value = ExercisesScreenState.ShowingExerciseDetails(
+            exercise = exercise
+        )
+    }
+
+    private fun updateExercise(exercise: Exercise) {
+        viewModelScope.launch {
+            repository.insertExercise(
+                exercise
+            )
+        }
+        if (_state.value is ExercisesScreenState.ShowingExerciseDetails) {
+            _state.value = (state.value as ExercisesScreenState.ShowingExerciseDetails).copy(
+                exercise = exercise
             )
         }
     }

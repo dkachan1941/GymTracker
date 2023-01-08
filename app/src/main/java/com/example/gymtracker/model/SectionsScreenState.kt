@@ -11,6 +11,10 @@ sealed class SectionsScreenState {
     data class ShowingCardDetails(
         val section: SectionWithExercises
     ) : SectionsScreenState()
+
+    data class ShowingExerciseDetails(
+        val exercise: Exercise
+    ) : SectionsScreenState()
 }
 
 sealed class SectionsScreenEvent {
@@ -18,8 +22,12 @@ sealed class SectionsScreenEvent {
     data class ResetExerciseDate(val exercise: Exercise) : SectionsScreenEvent()
     data class AddNewSection(val sectionName: String) : SectionsScreenEvent()
     data class AddNewExercise(val exerciseName: String, val sectionId: Long) : SectionsScreenEvent()
-    data class ResetExercise(val exercise: Exercise) : SectionsScreenEvent()
+    data class UpdateExercise(val exercise: Exercise) : SectionsScreenEvent()
     data class ResetSection(val section: Section) : SectionsScreenEvent()
+    data class ShowExerciseDetails(val exercise: Exercise) : SectionsScreenEvent()
+    data class ChangeExerciseName(val exercise: Exercise, val exerciseName: String) :
+        SectionsScreenEvent()
+
     object LoadData : SectionsScreenEvent()
     object ShowSectionsList : SectionsScreenEvent()
 }

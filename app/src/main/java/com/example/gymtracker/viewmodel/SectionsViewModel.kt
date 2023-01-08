@@ -69,9 +69,28 @@ class SectionsViewModel @Inject constructor(
                 name = event.exerciseName,
                 sectionId = event.sectionId
             )
-            is SectionsScreenEvent.ResetExercise -> updateExercise(exercise = event.exercise)
+            is SectionsScreenEvent.UpdateExercise -> updateExercise(exercise = event.exercise)
             is SectionsScreenEvent.ResetSection -> resetSection(section = event.section)
+            is SectionsScreenEvent.ShowExerciseDetails -> showExerciseDetails(exercise = event.exercise)
+            is SectionsScreenEvent.ChangeExerciseName -> changeExerciseName(
+                exercise = event.exercise,
+                exerciseName = event.exerciseName
+            )
         }
+    }
+
+    private fun changeExerciseName(exercise: Exercise, exerciseName: String) {
+        viewModelScope.launch {
+            repository.insertExercise(
+                exercise.copy(
+                    name = exerciseName
+                )
+            )
+        }
+    }
+
+    private fun showExerciseDetails(exercise: Exercise) {
+        _state.value = SectionsScreenState.ShowingExerciseDetails(exercise = exercise)
     }
 
     private fun resetSection(section: Section) {
@@ -173,26 +192,15 @@ class SectionsViewModel @Inject constructor(
     }
 
     private fun updateExercise(exercise: Exercise) {
-        val newExercise = exercise.copy(
-            lastDoneTimestamp = System.currentTimeMillis(),
-        )
         viewModelScope.launch {
             repository.insertExercise(
-                newExercise
+                exercise
             )
         }
-        if (state.value is SectionsScreenState.ShowingCardDetails) {
-            val state = (state.value as SectionsScreenState.ShowingCardDetails)
+        if (state.value is SectionsScreenState.ShowingExerciseDetails) {
+            val state = (state.value as SectionsScreenState.ShowingExerciseDetails)
             _state.value = state.copy(
-                section = state.section.copy(
-                    exercises = state.section.exercises.map { oldExercise ->
-                        if (oldExercise.id == exercise.id) {
-                            newExercise
-                        } else {
-                            oldExercise
-                        }
-                    }
-                )
+                exercise = exercise
             )
         }
     }

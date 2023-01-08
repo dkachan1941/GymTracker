@@ -24,17 +24,37 @@ fun SectionsContent(
     viewModel: SectionsViewModel = hiltViewModel()
 ) {
     val notifyEvent = { event: SectionsScreenEvent -> viewModel.processInput(event) }
-    val uiState = viewModel.state.collectAsState().value
-    if (uiState is SectionsScreenState.ShowingCards) {
-        MainSectionsList(
-            state = uiState,
-            notifyEvent = notifyEvent
-        )
-    } else if (uiState is SectionsScreenState.ShowingCardDetails) {
-        SectionDetails(
-            state = uiState,
-            notifyEvent = notifyEvent
-        )
+    when (val uiState = viewModel.state.collectAsState().value) {
+        is SectionsScreenState.ShowingCards ->
+            MainSectionsList(
+                state = uiState,
+                notifyEvent = notifyEvent
+            )
+        is SectionsScreenState.ShowingCardDetails ->
+            SectionDetails(
+                state = uiState,
+                notifyEvent = notifyEvent
+            )
+        is SectionsScreenState.ShowingExerciseDetails -> {
+            ExerciseDetails(
+                exercise = uiState.exercise,
+                onExerciseNameChanged = { exercise: Exercise, exerciseName: String ->
+                    notifyEvent(
+                        SectionsScreenEvent.ChangeExerciseName(
+                            exercise = exercise,
+                            exerciseName = exerciseName
+                        )
+                    )
+                },
+                updateExercise = { exercise: Exercise ->
+                    notifyEvent(SectionsScreenEvent.UpdateExercise(exercise = exercise))
+                }
+            )
+            BackHandler {
+                notifyEvent(SectionsScreenEvent.ShowSectionsList)
+            }
+        }
+        SectionsScreenState.Initialized -> Unit
     }
 }
 
@@ -173,10 +193,11 @@ fun SectionDetailsContent(
             thickness = 1.dp, modifier = Modifier.fillMaxWidth()
         )
         ListOfExercises(
-            exercises = state.section.exercises
-        ) { exercise: Exercise ->
-            notifyEvent(SectionsScreenEvent.ResetExercise(exercise = exercise))
-        }
+            exercises = state.section.exercises,
+            onExerciseClicked = { exercise: Exercise ->
+                notifyEvent(SectionsScreenEvent.ShowExerciseDetails(exercise = exercise))
+            }
+        )
     }
     if (isConfirmationDialogShown.value) {
         ConfirmationResetSectionDialog(

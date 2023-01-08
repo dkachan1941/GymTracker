@@ -49,5 +49,5 @@ private fun getDaysOfInactivity(timeStamp: Long?): Long? =
                 Instant.ofEpochMilli(timeStamp),
                 TimeZone.getDefault().toZoneId()
             )
-        ).toMinutes().absoluteValue
+        ).toDays().absoluteValue
     }
